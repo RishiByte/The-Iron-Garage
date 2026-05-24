@@ -1,16 +1,21 @@
 # THE IRON GARAGE
 
-THE IRON GARAGE is a premium, local-first fitness web app built by **Rishi Bhardwaj**. It helps users generate workout plans, browse exercises, track progress, and calculate BMI and calorie targets without login, payment, or a backend database.
+THE IRON GARAGE is a premium, local-first fitness web app built by **Rishi Bhardwaj**. It helps users generate workout plans, browse exercises, track progress, run workout sessions, and calculate BMI and calorie targets without login, payment, or a backend database.
 
 ## Features
 
 - AI-style weekly workout generator with mock logic
+- Workout session mode with set checkoffs, rest timer, and completed sessions
 - Exercise library with search, filters, detail modal, and favorites
 - Progress dashboard for weight, workouts, PRs, and measurements
+- Live homepage dashboard snapshot
 - BMI calculator with category and health suggestions
 - Calorie calculator for maintenance, fat loss, and muscle gain targets
+- Saved plan duplicate/copy/start actions
 - Dark/light theme toggle with saved preference
 - Responsive mobile-first UI
+- Mobile bottom navigation
+- PWA manifest and app icon
 - LocalStorage persistence
 - Loading skeletons, empty states, and SEO metadata
 
@@ -71,6 +76,7 @@ app/
   exercises/
   generator/
   progress/
+  session/
   layout.tsx
   page.tsx
   globals.css
@@ -85,6 +91,7 @@ data/
 
 lib/
   storage.ts
+  session.ts
   utils.ts
   workout.ts
 ```
@@ -95,6 +102,8 @@ THE IRON GARAGE does not use authentication or a backend database. User data is 
 
 - saved workout plans
 - favorite exercises
+- active workout session
+- completed workout sessions
 - progress tracker data
 - theme preference
 
@@ -104,11 +113,33 @@ Clearing browser storage will remove saved app data.
 
 - `/` - Landing page
 - `/generator` - AI workout generator
+- `/session` - Workout session mode
 - `/exercises` - Exercise library
 - `/progress` - Progress tracker
 - `/bmi` - BMI calculator
 - `/calories` - Calorie calculator
 - `/about` - About page
+
+## Deployment
+
+The easiest deployment path is Vercel:
+
+1. Push the repository to GitHub.
+2. Import the repo in Vercel.
+3. Keep the default Next.js settings.
+4. Deploy.
+
+Recommended build command:
+
+```bash
+npm run build
+```
+
+Recommended install command:
+
+```bash
+npm install
+```
 
 ## Author
 

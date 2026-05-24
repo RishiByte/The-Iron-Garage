@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CalendarDays, Check, Clock, Dumbbell, Save, Sparkles, Target, Trash2, Wand2 } from "lucide-react";
+import { CalendarDays, Check, Clock, Copy, Dumbbell, FileText, Play, Save, Sparkles, Target, Trash2, Wand2 } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PageHero } from "@/components/sections/page-hero";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import { Select } from "@/components/ui/select";
 import { exercises } from "@/data/exercises";
 import { cn } from "@/lib/utils";
 import { useLocalStorage } from "@/lib/storage";
+import { useToast } from "@/components/toast-provider";
 import {
   formatLabel,
   generateWeeklyWorkoutPlan,
@@ -32,6 +34,7 @@ const goalDescriptions: Record<AiWorkoutGoal, string> = {
 };
 
 export default function GeneratorPage() {
+  const { toast } = useToast();
   const [goal, setGoal] = useState<AiWorkoutGoal>("muscle-gain");
   const [experience, setExperience] = useState<ExperienceLevel>("intermediate");
   const [daysPerWeekInput, setDaysPerWeekInput] = useState("4");
@@ -62,6 +65,18 @@ export default function GeneratorPage() {
 
   function savePlan() {
     setSavedPlans([{ ...plan, id: crypto.randomUUID(), createdAt: new Date().toISOString() }, ...savedPlans].slice(0, 12));
+    toast({ title: "Plan saved", description: "Open it in Workout Session mode when you are ready.", variant: "success" });
+  }
+
+  function duplicatePlan(planToDuplicate: WeeklyWorkoutPlan) {
+    setSavedPlans([{ ...planToDuplicate, id: crypto.randomUUID(), createdAt: new Date().toISOString() }, ...savedPlans].slice(0, 12));
+    toast({ title: "Plan duplicated", variant: "success" });
+  }
+
+  async function copyPlan(planToCopy: WeeklyWorkoutPlan) {
+    const text = formatPlanForExport(planToCopy);
+    await navigator.clipboard.writeText(text);
+    toast({ title: "Plan copied", description: "Workout plan copied as text.", variant: "success" });
   }
 
   return (
@@ -192,6 +207,7 @@ export default function GeneratorPage() {
                       <div>
                         <p className="text-sm font-bold text-primary">{day.day}</p>
                         <CardTitle>{day.focus}</CardTitle>
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{day.coachingNote}</p>
                       </div>
                       <Badge className="w-fit">{day.duration} minutes</Badge>
                     </div>
@@ -222,7 +238,12 @@ export default function GeneratorPage() {
             ))}
           </div>
 
-          <SavedPlans plans={savedPlans} onDelete={(id) => setSavedPlans(savedPlans.filter((planItem) => planItem.id !== id))} />
+          <SavedPlans
+            plans={savedPlans}
+            onDelete={(id) => setSavedPlans(savedPlans.filter((planItem) => planItem.id !== id))}
+            onDuplicate={duplicatePlan}
+            onCopy={copyPlan}
+          />
         </div>
       </section>
     </>
@@ -294,7 +315,17 @@ function TrainingMetric({ value, label }: { value: string; label: string }) {
   );
 }
 
-function SavedPlans({ plans, onDelete }: { plans: WeeklyWorkoutPlan[]; onDelete: (id: string) => void }) {
+function SavedPlans({
+  plans,
+  onDelete,
+  onDuplicate,
+  onCopy,
+}: {
+  plans: WeeklyWorkoutPlan[];
+  onDelete: (id: string) => void;
+  onDuplicate: (plan: WeeklyWorkoutPlan) => void;
+  onCopy: (plan: WeeklyWorkoutPlan) => void;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -310,7 +341,7 @@ function SavedPlans({ plans, onDelete }: { plans: WeeklyWorkoutPlan[]; onDelete:
           </div>
         ) : (
           plans.map((plan) => (
-            <div key={plan.id} className="grid gap-3 rounded-lg border p-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div key={plan.id} className="grid gap-3 rounded-lg border p-4 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="font-bold">
                   {formatLabel(plan.input.goal)} / {formatLabel(plan.input.experience)}
@@ -319,9 +350,22 @@ function SavedPlans({ plans, onDelete }: { plans: WeeklyWorkoutPlan[]; onDelete:
                   {plan.input.daysPerWeek} days per week - {plan.input.duration} minutes - {new Date(plan.createdAt).toLocaleDateString()}
                 </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => onDelete(plan.id)} aria-label={`Delete saved ${formatLabel(plan.input.goal)} plan`}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="secondary" size="sm">
+                  <Link href="/session">
+                    <Play className="h-4 w-4" /> Start
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => onCopy(plan)}>
+                  <FileText className="h-4 w-4" /> Copy
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => onDuplicate(plan)}>
+                  <Copy className="h-4 w-4" /> Duplicate
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => onDelete(plan.id)} aria-label={`Delete saved ${formatLabel(plan.input.goal)} plan`}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))
         )}
@@ -343,4 +387,17 @@ function clampNumber(value: string, fallback: number, min: number, max: number) 
 function clamp(value: number, min: number, max: number) {
   if (Number.isNaN(value)) return min;
   return Math.min(max, Math.max(min, value));
+}
+
+function formatPlanForExport(plan: WeeklyWorkoutPlan) {
+  return [
+    `THE IRON GARAGE - ${formatLabel(plan.input.goal)} / ${formatLabel(plan.input.experience)}`,
+    `${plan.input.daysPerWeek} days per week - ${plan.input.duration} minutes`,
+    "",
+    ...plan.days.flatMap((day) => [
+      `${day.day}: ${day.focus}`,
+      ...day.exercises.map((exercise) => `- ${exercise.name}: ${exercise.sets} sets x ${exercise.reps} reps, ${exercise.rest} rest`),
+      "",
+    ]),
+  ].join("\n");
 }

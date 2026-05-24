@@ -277,8 +277,9 @@ function DemoPlaceholder({ exercise, compact = false }: { exercise: Exercise; co
           <span className="h-24 rounded-md bg-primary" />
           <span className="h-16 rounded-md bg-background/20" />
         </div>
-        <p className="text-sm font-bold uppercase tracking-[0.18em] opacity-70">{exercise.muscle} movement</p>
+        <p className="text-sm font-bold uppercase tracking-[0.18em] opacity-70">{exercise.muscle} demo zone</p>
         <p className="mt-1 text-2xl font-black tracking-normal">{exercise.name}</p>
+        <p className="mt-2 text-sm opacity-70">Replace this block with a real GIF, video, or muscle diagram.</p>
       </div>
     </div>
   );

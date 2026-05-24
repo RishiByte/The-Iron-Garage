@@ -20,9 +20,13 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
+import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocalStorage } from "@/lib/storage";
+import type { CompletedWorkoutSession } from "@/lib/session";
+import type { WeeklyWorkoutPlan } from "@/lib/workout";
 
 const fadeUp = {
   initial: { opacity: 0, y: 22 },
@@ -110,9 +114,16 @@ const faqs = [
 ];
 
 export default function LandingPage() {
+  const [plans] = useLocalStorage<WeeklyWorkoutPlan[]>("fitforge-ai-plans", []);
+  const [favorites] = useLocalStorage<string[]>("fitforge-favorite-exercises", []);
+  const [sessions] = useLocalStorage<CompletedWorkoutSession[]>("iron-garage-completed-sessions", []);
+  const [weights] = useLocalStorage<Array<{ id: string; date: string; weight: number }>>("fitforge-weight-tracker", []);
+  const latestWeight = useMemo(() => [...weights].sort((a, b) => a.date.localeCompare(b.date)).at(-1)?.weight, [weights]);
+
   return (
     <div className="overflow-hidden">
       <HeroSection />
+      <DashboardSnapshot plans={plans.length} favorites={favorites.length} sessions={sessions.length} latestWeight={latestWeight} />
       <FeaturesSection />
       <CategoriesSection />
       <TestimonialsSection />
@@ -120,6 +131,40 @@ export default function LandingPage() {
       <FaqSection />
       <LandingFooter />
     </div>
+  );
+}
+
+function DashboardSnapshot({
+  plans,
+  favorites,
+  sessions,
+  latestWeight,
+}: {
+  plans: number;
+  favorites: number;
+  sessions: number;
+  latestWeight?: number;
+}) {
+  return (
+    <section className="page-shell -mt-8 relative z-10 grid gap-4 pb-12 sm:grid-cols-2 xl:grid-cols-4">
+      <SnapshotCard title="Saved Plans" value={plans.toString()} href="/generator" />
+      <SnapshotCard title="Completed Sessions" value={sessions.toString()} href="/session" />
+      <SnapshotCard title="Favorite Exercises" value={favorites.toString()} href="/exercises" />
+      <SnapshotCard title="Latest Weight" value={latestWeight ? `${latestWeight} kg` : "--"} href="/progress" />
+    </section>
+  );
+}
+
+function SnapshotCard({ title, value, href }: { title: string; value: string; href: string }) {
+  return (
+    <Link href={href}>
+      <Card className="glass-panel bg-card/90 transition hover:-translate-y-1 hover:border-primary/50">
+        <CardContent className="p-5">
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <p className="mt-2 text-3xl font-black">{value}</p>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 

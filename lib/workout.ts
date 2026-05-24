@@ -25,6 +25,7 @@ export type WeeklyWorkoutPlan = {
   days: Array<{
     day: string;
     focus: string;
+    coachingNote: string;
     duration: number;
     exercises: Array<Exercise & { sets: number; reps: string; rest: string }>;
   }>;
@@ -93,6 +94,12 @@ const aiGoalConfig: Record<AiWorkoutGoal, { sets: number; reps: string; rest: st
   },
 };
 
+const warmupNotes: Record<AiWorkoutGoal, string> = {
+  "muscle-gain": "Warm up with 2 lighter ramp sets on the first compound lift, then add load when all top sets hit the rep range.",
+  "fat-loss": "Keep rest honest, pair easy cardio after lifting, and aim for smooth reps instead of sloppy speed.",
+  endurance: "Use controlled tempo, stop 1-2 reps before form breaks, and keep transitions crisp.",
+};
+
 const experienceModifier: Record<ExperienceLevel, { setDelta: number; exerciseDelta: number }> = {
   beginner: { setDelta: -1, exerciseDelta: -1 },
   intermediate: { setDelta: 0, exerciseDelta: 0 },
@@ -121,6 +128,7 @@ export function generateWeeklyWorkoutPlan(input: AiWorkoutInput): WeeklyWorkoutP
     return {
       day: dayNames[dayIndex] ?? `Day ${dayIndex + 1}`,
       focus: focusMuscles.join(" + "),
+      coachingNote: warmupNotes[input.goal],
       duration: input.duration,
       exercises: selected.map((exercise, exerciseIndex) => ({
         ...exercise,

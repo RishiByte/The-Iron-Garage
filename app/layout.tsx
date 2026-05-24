@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { ToastProvider } from "@/components/toast-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,16 +37,19 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="fitforge-theme">
-          <div className="flex min-h-screen flex-col">
-            <a href="#main-content" className="skip-link">
-              Skip to content
-            </a>
-            <SiteHeader />
-            <main id="main-content" className="flex-1" tabIndex={-1}>
-              {children}
-            </main>
-            <SiteFooter />
-          </div>
+          <ToastProvider>
+            <div className="flex min-h-screen flex-col pb-20 lg:pb-0">
+              <a href="#main-content" className="skip-link">
+                Skip to content
+              </a>
+              <SiteHeader />
+              <main id="main-content" className="flex-1" tabIndex={-1}>
+                {children}
+              </main>
+              <SiteFooter />
+              <MobileBottomNav />
+            </div>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
