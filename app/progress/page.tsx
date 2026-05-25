@@ -9,8 +9,10 @@ import {
   Ruler,
   Scale,
   Target,
+  TrendingUp,
   Trash2,
   Trophy,
+  UserRound,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -32,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { completedVolume, defaultProfile, estimatedOneRepMax, getSetLogs, type CompletedWorkoutSession, type TrainingProfile } from "@/lib/session";
 import { useLocalStorage } from "@/lib/storage";
 
 type ChartRange = "weekly" | "monthly";
@@ -105,6 +108,8 @@ export default function ProgressPage() {
     "fitforge-body-measurements",
     measurementSeed,
   );
+  const [sessions] = useLocalStorage<CompletedWorkoutSession[]>("iron-garage-completed-sessions", []);
+  const [profile, setProfile] = useLocalStorage<TrainingProfile>("iron-garage-profile", defaultProfile);
 
   const [weightForm, setWeightForm] = useState({ date: today, weight: 76.8 });
   const [workoutForm, setWorkoutForm] = useState({ date: today, workout: "Push", completed: true, minutes: 50 });
@@ -125,9 +130,15 @@ export default function ProgressPage() {
   const completionRate = workouts.length ? Math.round((completedWorkouts / workouts.length) * 100) : 0;
   const bestPr = prs.reduce((best, entry) => (entry.weight > best.weight ? entry : best), prs[0] ?? { weight: 0, exercise: "None", reps: 0 });
   const latestMeasurement = sortedMeasurements.at(-1);
+  const loggedVolume = completedVolume(sessions);
+  const trainingStreak = calculateStreak(sessions);
+  const completedSetCount = sessions.reduce((sum, session) => sum + session.exercises.reduce((total, exercise) => total + getSetLogs(exercise).filter((set) => set.completed).length, 0), 0);
 
   const workoutChartData = useMemo(() => aggregateWorkouts(workouts, range), [range, workouts]);
   const prChartData = useMemo(() => aggregatePrs(prs, range), [prs, range]);
+  const volumeChartData = useMemo(() => sessionVolumeData(sessions), [sessions]);
+  const muscleChartData = useMemo(() => muscleVolumeData(sessions), [sessions]);
+  const strengthChartData = useMemo(() => strengthData(sessions), [sessions]);
 
   function addWeight() {
     setWeights([{ id: crypto.randomUUID(), ...weightForm }, ...weights]);
@@ -159,7 +170,7 @@ export default function ProgressPage() {
               <Activity className="mr-1.5 h-3.5 w-3.5 text-primary" />
               Local dashboard
             </Badge>
-            <Badge>{weights.length + workouts.length + prs.length + measurements.length} total logs</Badge>
+            <Badge>{weights.length + workouts.length + prs.length + measurements.length + sessions.length} total logs</Badge>
           </div>
           <div className="w-full sm:w-48">
             <Select value={range} onChange={(event) => setRange(event.target.value as ChartRange)}>
@@ -169,7 +180,7 @@ export default function ProgressPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
           <StatCard
             icon={Scale}
             label="Current weight"
@@ -189,10 +200,13 @@ export default function ProgressPage() {
             value={`${latestMeasurement?.waist ?? 0} cm`}
             detail={`${latestMeasurement?.chest ?? 0} cm chest`}
           />
+          <StatCard icon={TrendingUp} label="Logged volume" value={`${loggedVolume.toLocaleString()} kg`} detail={`${completedSetCount} working sets`} />
+          <StatCard icon={Flame} label="Session streak" value={`${trainingStreak} days`} detail={`${sessions.length} saved workouts`} />
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
           <div className="grid gap-4">
+            <ProfileCard profile={profile} onChange={setProfile} />
             <TrackerCard title="Weight tracker" icon={Scale}>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Date">
@@ -271,6 +285,48 @@ export default function ProgressPage() {
 
           <div className="grid gap-4">
             <div className="grid gap-4 lg:grid-cols-2">
+              <ChartCard title="Logged workout volume">
+                {volumeChartData.length ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={volumeChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                      <YAxis stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="volume" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty text="Finish a logged session to see volume." />}
+              </ChartCard>
+
+              <ChartCard title="Volume by muscle">
+                {muscleChartData.length ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={muscleChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="muscle" stroke="hsl(var(--muted-foreground))" />
+                      <YAxis stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="volume" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty text="Log weights to compare muscle workload." />}
+              </ChartCard>
+
+              <ChartCard title="Estimated strength by exercise">
+                {strengthChartData.length ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={strengthChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="exercise" stroke="hsl(var(--muted-foreground))" />
+                      <YAxis stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="estimatedMax" fill="hsl(var(--chart-4))" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty text="Complete weighted sets to calculate strength." />}
+              </ChartCard>
+
               <ChartCard title="Weight trend">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={sortedWeights}>
@@ -398,6 +454,67 @@ function TrackerCard({ title, icon: Icon, children }: { title: string; icon: typ
   );
 }
 
+function ProfileCard({ profile, onChange }: { profile: TrainingProfile; onChange: (profile: TrainingProfile) => void }) {
+  return (
+    <Card className="glass-panel bg-card/80">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15 text-primary">
+            <UserRound className="h-5 w-5" />
+          </div>
+          <div>
+            <CardTitle className="text-base">Training profile</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">Stored only on this device</p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <Field label="Name">
+          <Input value={profile.name} placeholder="Your name" onChange={(event) => onChange({ ...profile, name: event.target.value })} />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Main goal">
+            <Select value={profile.goal} onChange={(event) => onChange({ ...profile, goal: event.target.value as TrainingProfile["goal"] })}>
+              <option value="muscle-gain">Muscle gain</option>
+              <option value="strength">Strength</option>
+              <option value="fat-loss">Fat loss</option>
+              <option value="endurance">Endurance</option>
+            </Select>
+          </Field>
+          <Field label="Level">
+            <Select value={profile.experience} onChange={(event) => onChange({ ...profile, experience: event.target.value as TrainingProfile["experience"] })}>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </Select>
+          </Field>
+          <Field label="Current kg">
+            <Input type="number" value={profile.currentWeight} onChange={(event) => onChange({ ...profile, currentWeight: Number(event.target.value) || 0 })} />
+          </Field>
+          <Field label="Target kg">
+            <Input type="number" value={profile.targetWeight} onChange={(event) => onChange({ ...profile, targetWeight: Number(event.target.value) || 0 })} />
+          </Field>
+          <Field label="Height cm">
+            <Input type="number" value={profile.height ?? 175} onChange={(event) => onChange({ ...profile, height: Number(event.target.value) || 0 })} />
+          </Field>
+          <Field label="Weekly sessions">
+            <Input type="number" min={1} max={7} value={profile.weeklySessions} onChange={(event) => onChange({ ...profile, weeklySessions: Math.max(1, Math.min(7, Number(event.target.value) || 1)) })} />
+          </Field>
+        </div>
+        <div className="rounded-md border bg-primary/10 p-3 text-sm">
+          <div className="flex items-center gap-2 font-bold">
+            <Target className="h-4 w-4 text-primary" />
+            {formatProfileGoal(profile.goal)}
+          </div>
+          <p className="mt-1 text-muted-foreground">
+            {profile.currentWeight} kg to {profile.targetWeight} kg, training {profile.weeklySessions} times weekly.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="grid gap-2 text-sm font-medium">
@@ -416,6 +533,10 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
       <CardContent className="h-72">{children}</CardContent>
     </Card>
   );
+}
+
+function ChartEmpty({ text }: { text: string }) {
+  return <div className="grid h-full place-items-center rounded-md border border-dashed px-5 text-center text-sm text-muted-foreground">{text}</div>;
 }
 
 function LogList<T extends { id: string }>({
@@ -488,6 +609,61 @@ function aggregatePrs(items: PrEntry[], range: ChartRange) {
   return [...groups.values()];
 }
 
+function sessionVolumeData(sessions: CompletedWorkoutSession[]) {
+  return [...sessions]
+    .reverse()
+    .slice(-8)
+    .map((session) => ({
+      date: new Date(session.completedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      volume: session.exercises.reduce(
+        (sum, exercise) => sum + getSetLogs(exercise).reduce((total, set) => total + (set.completed ? set.weight * set.reps : 0), 0),
+        0,
+      ),
+    }));
+}
+
+function muscleVolumeData(sessions: CompletedWorkoutSession[]) {
+  const muscles = new Map<string, number>();
+  sessions.forEach((session) =>
+    session.exercises.forEach((exercise) => {
+      const volume = getSetLogs(exercise).reduce((sum, set) => sum + (set.completed ? set.weight * set.reps : 0), 0);
+      muscles.set(exercise.muscle, (muscles.get(exercise.muscle) ?? 0) + volume);
+    }),
+  );
+  return [...muscles.entries()].map(([muscle, volume]) => ({ muscle, volume }));
+}
+
+function strengthData(sessions: CompletedWorkoutSession[]) {
+  const best = new Map<string, number>();
+  sessions.forEach((session) =>
+    session.exercises.forEach((exercise) =>
+      getSetLogs(exercise).forEach((set) => {
+        if (!set.completed) return;
+        best.set(exercise.name, Math.max(best.get(exercise.name) ?? 0, estimatedOneRepMax(set.weight, set.reps)));
+      }),
+    ),
+  );
+  return [...best.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([exercise, estimatedMax]) => ({ exercise: exercise.split(" ").slice(0, 2).join(" "), estimatedMax }));
+}
+
+function calculateStreak(sessions: CompletedWorkoutSession[]) {
+  const dates = [...new Set(sessions.map((session) => session.completedAt.slice(0, 10)))].sort().reverse();
+  if (!dates.length) return 0;
+  let streak = 1;
+  let cursor = new Date(`${dates[0]}T00:00:00`);
+  for (const date of dates.slice(1)) {
+    const next = new Date(`${date}T00:00:00`);
+    const difference = (cursor.getTime() - next.getTime()) / 86400000;
+    if (difference !== 1) break;
+    streak += 1;
+    cursor = next;
+  }
+  return streak;
+}
+
 function getBucketLabel(date: string, range: ChartRange) {
   const parsed = new Date(`${date}T00:00:00`);
   if (range === "monthly") {
@@ -504,4 +680,11 @@ function formatDelta(value: number) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatProfileGoal(goal: TrainingProfile["goal"]) {
+  return goal
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }

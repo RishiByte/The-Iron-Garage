@@ -238,6 +238,26 @@ function ExerciseModal({
                     </ul>
                   </div>
 
+                  <div className="rounded-lg border bg-background p-4">
+                    <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">Setup</p>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">{exercise.setup}</p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-lg border bg-background p-4">
+                      <p className="text-sm font-bold uppercase tracking-[0.16em] text-accent">Common mistakes</p>
+                      <ul className="mt-3 grid gap-2 text-sm leading-5 text-muted-foreground">
+                        {exercise.mistakes.map((mistake) => (
+                          <li key={mistake}>- {mistake}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border bg-secondary/10 p-4">
+                      <p className="text-sm font-bold uppercase tracking-[0.16em] text-secondary">Safety note</p>
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{exercise.safety}</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-3 gap-2 text-center text-sm">
                     <ModalMetric label="Muscle" value={exercise.muscle} />
                     <ModalMetric label="Gear" value={exercise.equipment} />

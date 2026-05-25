@@ -19,6 +19,8 @@ export type AiWorkoutInput = {
 
 export type WeeklyWorkoutPlan = {
   id: string;
+  title?: string;
+  source?: "generated" | "custom";
   createdAt: string;
   summary: string;
   input: AiWorkoutInput;
