@@ -5,6 +5,8 @@ export type Exercise = {
   equipment: "Barbell" | "Dumbbell" | "Cable" | "Machine" | "Bodyweight";
   level: "Beginner" | "Intermediate" | "Advanced";
   cues: string[];
+  videoId: string;
+  videoCredit: string;
 };
 
 export const exercises: Exercise[] = [
@@ -15,6 +17,8 @@ export const exercises: Exercise[] = [
     equipment: "Barbell",
     level: "Intermediate",
     cues: ["Set shoulder blades back", "Lower under control", "Drive feet into floor"],
+    videoId: "CayG6UYqL8g",
+    videoCredit: "NASM",
   },
   {
     id: "incline-db-press",
@@ -23,6 +27,8 @@ export const exercises: Exercise[] = [
     equipment: "Dumbbell",
     level: "Beginner",
     cues: ["Use a 30 degree incline", "Keep wrists stacked", "Squeeze at the top"],
+    videoId: "JKnpHchOWPU",
+    videoCredit: "NASM",
   },
   {
     id: "lat-pulldown",
@@ -31,6 +37,8 @@ export const exercises: Exercise[] = [
     equipment: "Cable",
     level: "Beginner",
     cues: ["Pull elbows to ribs", "Pause at chest", "Avoid leaning back too far"],
+    videoId: "D8b3OVbRfwE",
+    videoCredit: "QMSU",
   },
   {
     id: "barbell-row",
@@ -39,6 +47,8 @@ export const exercises: Exercise[] = [
     equipment: "Barbell",
     level: "Intermediate",
     cues: ["Hinge with flat back", "Row to lower ribs", "Control the negative"],
+    videoId: "FWJR5Ve8bnQ",
+    videoCredit: "ScottHermanFitness",
   },
   {
     id: "squat",
@@ -47,6 +57,8 @@ export const exercises: Exercise[] = [
     equipment: "Barbell",
     level: "Intermediate",
     cues: ["Brace before descent", "Knees track toes", "Stand tall through hips"],
+    videoId: "3tn-xqyUUkQ",
+    videoCredit: "BarBend",
   },
   {
     id: "leg-press",
@@ -55,6 +67,8 @@ export const exercises: Exercise[] = [
     equipment: "Machine",
     level: "Beginner",
     cues: ["Full foot on platform", "Do not lock knees", "Control depth"],
+    videoId: "IZxyjW7MPJQ",
+    videoCredit: "ScottHermanFitness",
   },
   {
     id: "shoulder-press",
@@ -63,6 +77,8 @@ export const exercises: Exercise[] = [
     equipment: "Dumbbell",
     level: "Beginner",
     cues: ["Ribs down", "Press slightly inward", "Lower to ear level"],
+    videoId: "qEwKCR5JCog",
+    videoCredit: "ScottHermanFitness",
   },
   {
     id: "lateral-raise",
@@ -71,6 +87,8 @@ export const exercises: Exercise[] = [
     equipment: "Cable",
     level: "Beginner",
     cues: ["Lead with elbows", "Stop at shoulder height", "Keep tension constant"],
+    videoId: "Sp8be0IFNvk",
+    videoCredit: "BarBend",
   },
   {
     id: "curl",
@@ -79,6 +97,8 @@ export const exercises: Exercise[] = [
     equipment: "Dumbbell",
     level: "Beginner",
     cues: ["Keep elbows back", "No swinging", "Supinate hard at top"],
+    videoId: "soxrZlIl35U",
+    videoCredit: "ScottHermanFitness",
   },
   {
     id: "triceps-pushdown",
@@ -87,6 +107,8 @@ export const exercises: Exercise[] = [
     equipment: "Cable",
     level: "Beginner",
     cues: ["Pin elbows to sides", "Split rope at bottom", "Slow return"],
+    videoId: "vB5OHsJ3EME",
+    videoCredit: "ScottHermanFitness",
   },
   {
     id: "plank",
@@ -95,6 +117,8 @@ export const exercises: Exercise[] = [
     equipment: "Bodyweight",
     level: "Intermediate",
     cues: ["Squeeze glutes", "Brace abs", "Keep neck neutral"],
+    videoId: "pSHjTRCQxIw",
+    videoCredit: "Bowflex",
   },
   {
     id: "hanging-raise",
@@ -103,6 +127,8 @@ export const exercises: Exercise[] = [
     equipment: "Bodyweight",
     level: "Intermediate",
     cues: ["Tuck pelvis", "Avoid swinging", "Control each rep"],
+    videoId: "fLbZrF6MZuE",
+    videoCredit: "BarBend",
   },
 ];
 

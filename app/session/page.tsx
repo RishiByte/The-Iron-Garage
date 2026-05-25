@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { Check, Clock, Dumbbell, Play, RotateCcw, Timer, Trophy } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
+import { ExerciseVideo } from "@/components/exercise-video";
 import { PageHero } from "@/components/sections/page-hero";
 import { useToast } from "@/components/toast-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import { exercises } from "@/data/exercises";
 import { useLocalStorage } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import { createSessionFromPlan, type ActiveWorkoutSession, type CompletedWorkoutSession } from "@/lib/session";
@@ -160,7 +162,7 @@ export default function SessionPage() {
 
               <div className="grid gap-4">
                 {activeSession.exercises.map((exercise) => (
-                  <Card key={exercise.id}>
+                  <Card key={exercise.id} className="overflow-hidden">
                     <CardHeader className="border-b bg-muted/35">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
@@ -171,21 +173,30 @@ export default function SessionPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                        {exercise.completedSets.map((done, index) => (
-                          <button
-                            key={`${exercise.id}-${index}`}
-                            type="button"
-                            onClick={() => toggleSet(exercise.id, index, exercise.rest)}
-                            className={cn(
-                              "flex items-center justify-between rounded-md border p-3 text-left text-sm font-semibold transition",
-                              done ? "border-secondary bg-secondary text-secondary-foreground" : "bg-background hover:bg-muted",
-                            )}
-                          >
-                            Set {index + 1}
-                            {done ? <Check className="h-4 w-4" /> : null}
-                          </button>
-                        ))}
+                      <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
+                        <ExerciseVideo
+                          name={exercise.name}
+                          videoId={getSessionVideo(exercise.id, exercise.videoId)}
+                          videoCredit={getSessionVideoCredit(exercise.id, exercise.videoCredit)}
+                          compact
+                        />
+
+                        <div className="grid content-start gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                          {exercise.completedSets.map((done, index) => (
+                            <button
+                              key={`${exercise.id}-${index}`}
+                              type="button"
+                              onClick={() => toggleSet(exercise.id, index, exercise.rest)}
+                              className={cn(
+                                "flex min-h-12 items-center justify-between rounded-md border p-3 text-left text-sm font-semibold transition",
+                                done ? "border-secondary bg-secondary text-secondary-foreground" : "bg-background hover:bg-muted",
+                              )}
+                            >
+                              Set {index + 1}
+                              {done ? <Check className="h-4 w-4" /> : null}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -236,4 +247,12 @@ function formatTimer(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   const remaining = seconds % 60;
   return `${minutes}:${String(remaining).padStart(2, "0")}`;
+}
+
+function getSessionVideo(exerciseId: string, videoId?: string) {
+  return videoId || exercises.find((exercise) => exercise.id === exerciseId)?.videoId || "CayG6UYqL8g";
+}
+
+function getSessionVideoCredit(exerciseId: string, videoCredit?: string) {
+  return videoCredit || exercises.find((exercise) => exercise.id === exerciseId)?.videoCredit || "Exercise demo";
 }

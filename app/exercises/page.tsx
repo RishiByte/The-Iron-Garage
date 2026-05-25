@@ -1,9 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Dumbbell, Eye, Heart, Play, Search, SlidersHorizontal, Star, X } from "lucide-react";
+import { Dumbbell, Eye, Heart, Search, SlidersHorizontal, Star, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
+import { ExerciseVideo } from "@/components/exercise-video";
 import { PageHero } from "@/components/sections/page-hero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -130,7 +131,13 @@ function ExerciseCard({
 }) {
   return (
     <Card className="glass-panel group h-full overflow-hidden bg-card/80 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
-      <DemoPlaceholder exercise={exercise} compact />
+      <ExerciseVideo
+        name={exercise.name}
+        videoId={exercise.videoId}
+        videoCredit={exercise.videoCredit}
+        compact
+        interactive={false}
+      />
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -202,7 +209,7 @@ function ExerciseModal({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="grid lg:grid-cols-[1.05fr_.95fr]">
-              <DemoPlaceholder exercise={exercise} />
+              <ExerciseVideo name={exercise.name} videoId={exercise.videoId} videoCredit={exercise.videoCredit} />
               <div className="p-5 sm:p-6">
                 <div className="mb-5 flex items-start justify-between gap-3">
                   <div>
@@ -253,35 +260,6 @@ function ExerciseModal({
         </motion.div>
       ) : null}
     </AnimatePresence>
-  );
-}
-
-function DemoPlaceholder({ exercise, compact = false }: { exercise: Exercise; compact?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "relative overflow-hidden bg-foreground text-background dark:bg-white dark:text-slate-950",
-        compact ? "h-44" : "min-h-72 lg:min-h-full",
-      )}
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,158,11,.45),transparent_28%),radial-gradient(circle_at_80%_70%,rgba(20,184,166,.35),transparent_30%),linear-gradient(135deg,rgba(244,63,94,.22),transparent_45%)]" />
-      <div className="absolute inset-x-6 top-6 flex items-center justify-between">
-        <Badge className="border-background/20 bg-background/10 text-background dark:text-slate-950">Demo placeholder</Badge>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background/15">
-          <Play className="h-4 w-4 fill-current" />
-        </div>
-      </div>
-      <div className="absolute bottom-6 left-6 right-6">
-        <div className="mb-5 grid h-24 grid-cols-3 items-end gap-2 opacity-80">
-          <span className="h-12 rounded-md bg-background/20" />
-          <span className="h-24 rounded-md bg-primary" />
-          <span className="h-16 rounded-md bg-background/20" />
-        </div>
-        <p className="text-sm font-bold uppercase tracking-[0.18em] opacity-70">{exercise.muscle} demo zone</p>
-        <p className="mt-1 text-2xl font-black tracking-normal">{exercise.name}</p>
-        <p className="mt-2 text-sm opacity-70">Replace this block with a real GIF, video, or muscle diagram.</p>
-      </div>
-    </div>
   );
 }
 

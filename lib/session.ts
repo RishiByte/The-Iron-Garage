@@ -14,6 +14,8 @@ export type ActiveWorkoutSession = {
     reps: string;
     rest: string;
     muscle: string;
+    videoId?: string;
+    videoCredit?: string;
     completedSets: boolean[];
   }>;
 };
@@ -39,6 +41,8 @@ export function createSessionFromPlan(plan: WeeklyWorkoutPlan, dayIndex = 0): Ac
         reps: exercise.reps,
         rest: exercise.rest,
         muscle: exercise.muscle,
+        videoId: exercise.videoId,
+        videoCredit: exercise.videoCredit,
         completedSets: Array.from({ length: exercise.sets }, () => false),
       })) ?? [],
   };
